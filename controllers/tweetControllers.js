@@ -1,5 +1,6 @@
 const Tweet = require('../model/tweetsModel');
 const tweetList = require('../tweetList');
+const Suggestion = require('../model/suggestionModel');
 const labels = require('./labels.js');
 const { Configuration, OpenAIApi } = require('openai');
 const configuration = new Configuration({
@@ -19,6 +20,10 @@ const labellingTweet = async (req, res) => {
 
       assigningLabel(tweet, tag);
     });
+    res.status(200).json({
+      message:
+        'Tweets stored with the labels and some tweets went for Admin approval which will get stored if the admin approves',
+    });
   } catch (error) {
     console.log(error);
   }
@@ -27,7 +32,7 @@ const labellingTweet = async (req, res) => {
 async function assigningLabel(tweet, tag) {
   try {
     if (labels.includes(reply)) {
-      LabelledTweet = { ...tweet, label: tag };
+      const LabelledTweet = { ...tweet, label: tag };
       const data = await Tweet.create(LabelledTweet);
     }
   } catch (error) {
