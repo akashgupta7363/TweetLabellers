@@ -8,10 +8,20 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+const storeTweets = async (req, res) => {
+  try {
+    const data = await Content.create(tweetList);
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(401).json(error);
+  }
+};
+
 const labellingTweet = async (req, res) => {
   try {
-    const tweetlist = await Content.find({ label: 'new' });
-    tweetList.map(async (tweet) => {
+    const tweets = await Content.find({ label: 'new' });
+    tweets.map(async (tweet) => {
       const response = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: getPrompt(tweet.body) }],
@@ -51,4 +61,4 @@ function getPrompt(body) {
 Here is the tweet: 
 "${body}".`;
 }
-module.exports = labellingTweet;
+module.exports = { storeTweets, labellingTweet };
