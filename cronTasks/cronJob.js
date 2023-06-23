@@ -13,9 +13,12 @@ const cronJob = nodeCron.schedule('0 0,12 * * *', async () => {
     suggestion.map((sug) => {
       if (sug.suggestedLabel === 'approved') {
         approvedUpdate(sug);
-      }
+      } else if (sug.suggestedLabel === 'decline');
+      declinedUpdate(sug);
     });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 async function approvedUpdate(sug) {
@@ -26,6 +29,11 @@ async function approvedUpdate(sug) {
   } catch (error) {
     console.log(error);
   }
+}
+async function declinedUpdate(sug) {
+  await Content.findByIdAndDelete(sug.tweetId);
+
+  await Suggestion.findByIdAndDelete(sug._id);
 }
 
 module.exports = cronJob;
