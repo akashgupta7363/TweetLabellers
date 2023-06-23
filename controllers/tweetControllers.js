@@ -26,14 +26,18 @@ const labellingTweet = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(400).json(error);
   }
 };
 
 async function assigningLabel(tweet, tag) {
   try {
-    if (labels.includes(reply)) {
+    if (labels.includes(tag)) {
       const LabelledTweet = { ...tweet, label: tag };
       const data = await Tweet.create(LabelledTweet);
+    } else {
+      const suggestedLabelledTweet = { ...tweet, suggestedLabel: tag };
+      const data = await Suggestion.create({ suggestedLabelledTweet });
     }
   } catch (error) {
     console.log(error);
