@@ -1,7 +1,7 @@
 const Tweet = require('../model/tweetsModel');
-const tweetList = require('../tweetList');
+const tweetList = require('../data/tweetList');
 const Suggestion = require('../model/suggestionModel');
-const labels = require('./labels.js');
+const labels = require('../data/labels.js');
 const { Configuration, OpenAIApi } = require('openai');
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
