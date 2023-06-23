@@ -6,8 +6,10 @@ const suggestedModel = mongoose.Schema({
     type: String,
     default: 'pending',
   },
-  username: String,
-  content: String,
+  tweetId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Content',
+  },
 });
 
 const Suggestion = mongoose.model('Suggestion', suggestedModel);

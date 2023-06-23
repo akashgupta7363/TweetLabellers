@@ -1,4 +1,4 @@
-const Tweet = require('../model/tweetsModel');
+const Content = require('../model/ContentModel');
 const tweetList = require('../data/tweetList');
 const Suggestion = require('../model/suggestionModel');
 const labels = require('../data/labels.js');
@@ -9,8 +9,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const labellingTweet = async (req, res) => {
-  const labeledTweet = [];
   try {
+    const tweetlist = await Content.find({ label: 'new' });
     tweetList.map(async (tweet) => {
       const response = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo',
@@ -22,7 +22,7 @@ const labellingTweet = async (req, res) => {
     });
     res.status(200).json({
       message:
-        'Tweets stored with the labels and some tweets went for Admin approval which will get stored if the admin approves',
+        'Tweets stored with the labels and some tweets label was sent back for Admin approval which will get stored if the admin approves',
     });
   } catch (error) {
     console.log(error);
@@ -34,7 +34,7 @@ async function assigningLabel(tweet, tag) {
   try {
     if (labels.includes(tag)) {
       const LabelledTweet = { ...tweet, label: tag };
-      const data = await Tweet.create(LabelledTweet);
+      const data = await Content.create(LabelledTweet);
     } else {
       const suggestedLabelledTweet = { ...tweet, suggestedLabel: tag };
       const data = await Suggestion.create({ suggestedLabelledTweet });

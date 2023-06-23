@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
-const labellingTweet = require('./controllers/tweetControllers');
+const labellingTweet = require('./controllers/contentControllers');
 dotenv.config();
 const connectDB = require('./config/db');
 const cronJob = require('./cronTasks/cronJob');

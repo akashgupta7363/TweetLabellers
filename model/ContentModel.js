@@ -5,8 +5,9 @@ const tweetModel = mongoose.Schema({
   content: String,
   label: {
     type: String,
+    default: 'new',
   },
 });
 
-const Tweet = mongoose.model('Tweet', tweetModel);
-module.exports = Tweet;
+const Content = mongoose.model('Content', tweetModel);
+module.exports = Content;
