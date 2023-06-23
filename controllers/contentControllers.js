@@ -43,10 +43,12 @@ const labellingTweet = async (req, res) => {
 async function assigningLabel(tweet, tag) {
   try {
     if (labels.includes(tag)) {
-      const LabelledTweet = { ...tweet, label: tag };
-      const data = await Content.create(LabelledTweet);
+      const data = await Content.findByIdAndUpdate(tweet._id, { label: tag });
     } else {
-      const suggestedLabelledTweet = { ...tweet, suggestedLabel: tag };
+      const suggestedLabelledTweet = {
+        tweetId: tweet._id,
+        suggestedLabel: tag,
+      };
       const data = await Suggestion.create({ suggestedLabelledTweet });
     }
   } catch (error) {
@@ -55,7 +57,7 @@ async function assigningLabel(tweet, tag) {
 }
 
 function getPrompt(body) {
-  const prompt = `You are a person who is given a tweet and some tags. Analyze the tweet. if any tag from the provided tags doesn't fit with the tweet, then Suugest a tag where it will fit the most in the context of AI . Give the answer only with tag
+  const prompt = `You are given a tweet and some tags. Analyze the tweet. if any tag from the provided tags doesn't fit with the tweet, then Suggest a tag where it will fit the most in the context of AI . Give the answer only with tag
   these are tags:
  ${labels}.
 Here is the tweet: 
