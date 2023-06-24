@@ -23,27 +23,26 @@ const storeTweets = async (req, res) => {
 
 const labellingTweet = async (req, res) => {
   try {
-    // const tweets = await Content.find({ label: 'new' });
-    // tweets.map(async (tweet) => {
-    const response = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'user',
-          content: getPrompt(tweetList[9].body),
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 5,
-    });
-    const tag = response.data.choices[0].message.content;
+    const tweets = await Content.find({ label: 'new' });
+    tweets.map(async (tweet) => {
+      const response = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: getPrompt(tweets),
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 5,
+      });
+      const tag = response.data.choices[0].message.content;
 
-    //   assigningLabel(tweet, tag);
-    // });
+      assigningLabel(tweet, tag);
+    });
     res.status(200).json({
-      message:
-        'Tweets stored with the labels and some tweets label was sent back for Admin approval which will get stored if the admin approves',
-      tag: tag,
+      status: 'Tweets categorized successfully',
+      message: 'Some tweets label waiting for admin approval.',
     });
   } catch (error) {
     console.log(error);
