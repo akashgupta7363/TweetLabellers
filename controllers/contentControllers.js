@@ -1,7 +1,10 @@
 const Content = require('../model/ContentModel');
 const tweetList = require('../data/tweetList');
+const dotenv = require('dotenv');
 const Suggestion = require('../model/suggestionModel');
 const labels = require('../data/labels.js');
+dotenv.config();
+
 const { Configuration, OpenAIApi } = require('openai');
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,23 +23,31 @@ const storeTweets = async (req, res) => {
 
 const labellingTweet = async (req, res) => {
   try {
-    const tweets = await Content.find({ label: 'new' });
-    tweets.map(async (tweet) => {
-      const response = await openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: getPrompt(tweet.body) }],
-      });
-      const tag = response.data.choices[0].message.content;
-
-      assigningLabel(tweet, tag);
+    // const tweets = await Content.find({ label: 'new' });
+    // tweets.map(async (tweet) => {
+    const response = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'user',
+          content: getPrompt(tweetList[9].body),
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 5,
     });
+    const tag = response.data.choices[0].message.content;
+
+    //   assigningLabel(tweet, tag);
+    // });
     res.status(200).json({
       message:
         'Tweets stored with the labels and some tweets label was sent back for Admin approval which will get stored if the admin approves',
+      tag: tag,
     });
   } catch (error) {
     console.log(error);
-    res.status(400).json(error);
+    res.status(404).json(error);
   }
 };
 
@@ -57,10 +68,13 @@ async function assigningLabel(tweet, tag) {
 }
 
 function getPrompt(body) {
-  const prompt = `You are given a tweet and some tags. Analyze the tweet. if any tag from the provided tags doesn't fit with the tweet, then Suggest a tag where it will fit the most in the context of AI . Give the answer only with tag
-  these are tags:
- ${labels}.
-Here is the tweet: 
-"${body}".`;
+  const prompt = `Here is a tweet: 
+  "${body}"
+  these are labels:
+  ${labels}.
+  Analyze the tweet on the context of AI.
+Can this tweet can be categorizes with the given label, if not then suggest an new label for the tweet.
+Give a reply only with the label`;
+  return prompt;
 }
 module.exports = { storeTweets, labellingTweet };
