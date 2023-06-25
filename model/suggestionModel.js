@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 
 const suggestedModel = mongoose.Schema({
   suggestedLabel: String,
-  approval: {
-    type: String,
-    default: 'pending',
+  approval: Boolean,
+  markedByAdmin: {
+    type: Boolean,
+    default: false,
   },
   tweetId: {
     type: mongoose.Schema.Types.ObjectId,

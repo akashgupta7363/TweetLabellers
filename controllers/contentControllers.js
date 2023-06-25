@@ -2,7 +2,7 @@ const Content = require('../model/ContentModel');
 const tweetList = require('../data/tweetList');
 const dotenv = require('dotenv');
 const Suggestion = require('../model/suggestionModel');
-const labels = require('../data/labels.js');
+const Label = require('../model/labelModel');
 dotenv.config();
 
 const { Configuration, OpenAIApi } = require('openai');
@@ -37,12 +37,12 @@ const labellingTweet = async (req, res) => {
         max_tokens: 5,
       });
       const tag = response.data.choices[0].message.content;
-
-      assigningLabel(tweet, tag);
+      tweets.label = tag;
     });
+    assigningLabel(tweets, tag);
     res.status(200).json({
       status: 'Tweets categorized successfully',
-      message: 'Some tweets label waiting for admin approval.',
+      message: 'Some tweets labelling waiting for admin approval.',
     });
   } catch (error) {
     console.log(error);
@@ -50,17 +50,32 @@ const labellingTweet = async (req, res) => {
   }
 };
 
-async function assigningLabel(tweet, tag) {
+async function assigningLabel(tweets) {
   try {
-    if (labels.includes(tag)) {
-      const data = await Content.findByIdAndUpdate(tweet._id, { label: tag });
-    } else {
-      const suggestedLabelledTweet = {
-        tweetId: tweet._id,
-        suggestedLabel: tag,
-      };
-      const data = await Suggestion.create({ suggestedLabelledTweet });
-    }
+    const labels = await Label.find();
+    const impLabels = labels.filter((la) => la.importance);
+    const nonImpLabels = labels.filter((la) => !la.importance);
+    tweets.map(async (tweet) => {
+      if (nonImpLabels.includes(tag)) {
+        await Content.findByIdAndDelete(tweet._id);
+      } else if (impLabels.includes(tag)) {
+        await Content.findByIdAndUpdate(tweet._id, { label: tag });
+        await Label.updateOne(
+          { label: tag },
+          {
+            $push: {
+              tweetsId: tweet._id,
+            },
+          }
+        );
+      } else {
+        const suggestedLabelledTweet = {
+          tweetId: tweet._id,
+          suggestedLabel: tag,
+        };
+        const data = await Suggestion.create(suggestedLabelledTweet);
+      }
+    });
   } catch (error) {
     console.log(error);
   }
@@ -71,7 +86,7 @@ function getPrompt(body) {
   "${body}"
   these are labels:
   ${labels}.
-  Analyze the tweet on the context of AI.
+Analyze the tweet on the context of AI.
 Can this tweet can be categorizes with the given label, if not then suggest an new label for the tweet.
 Give a reply only with the label`;
   return prompt;
