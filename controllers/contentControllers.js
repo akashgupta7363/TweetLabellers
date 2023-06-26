@@ -25,20 +25,22 @@ const labellingTweet = async (req, res) => {
   try {
     const tweets = await Content.find({ label: 'new' });
     const labels = await Label.find();
-    tweets.map(async (tweet) => {
-      const response = await openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'user',
-            content: getPrompt(tweet.body, labels),
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 5,
-      });
-      const tag = response.data.choices[0].message.content;
-      tweet.label = tag;
+    tweets.map(async (tweet, i) => {
+      setTimeout(async () => {
+        const response = await openai.createChatCompletion({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'user',
+              content: getPrompt(tweet.body, labels),
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 5,
+        });
+        const tag = response.data.choices[0].message.content;
+        tweet.label = tag;
+      }, i * 40000);
     });
     assigningLabel(tweets, labels);
     res.status(200).json({
@@ -72,7 +74,7 @@ function assigningLabel(tweets, labels) {
       } else {
         const suggestedLabelledTweet = {
           tweetId: tweet._id,
-          suggestedLabel: tag,
+          suggestedLabel: tweet.label,
         };
         const data = await Suggestion.create(suggestedLabelledTweet);
       }
