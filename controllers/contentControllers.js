@@ -24,6 +24,7 @@ const storeTweets = async (req, res) => {
 const labellingTweet = async (req, res) => {
   try {
     const tweets = await Content.find({ label: 'new' });
+
     const labels = await Label.find();
     tweets.map(async (tweet, i) => {
       setTimeout(async () => {
@@ -42,11 +43,13 @@ const labellingTweet = async (req, res) => {
         tweet.label = tag;
       }, i * 40000);
     });
-    assigningLabel(tweets, labels);
-    res.status(200).json({
-      status: 'Tweets categorized successfully',
-      message: 'Some tweets labelling waiting for admin approval.',
-    });
+    setTimeout(() => {
+      assigningLabel(tweets, labels);
+      res.status(200).json({
+        status: 'Tweets categorized successfully',
+        message: 'Some tweets labelling waiting for admin approval.',
+      });
+    }, tweets.length * 40000);
   } catch (error) {
     console.log(error);
     res.status(404).json(error);
