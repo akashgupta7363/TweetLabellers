@@ -41,7 +41,7 @@ const labellingTweet = async (req, res) => {
         });
         const tag = response.data.choices[0].message.content;
         tweet.label = tag;
-      }, i * 40000);
+      }, i * 25000);
     });
     setTimeout(() => {
       assigningLabel(tweets, labels);
@@ -49,7 +49,7 @@ const labellingTweet = async (req, res) => {
         status: 'Tweets categorized successfully',
         message: 'Some tweets labelling waiting for admin approval.',
       });
-    }, tweets.length * 40000);
+    }, tweets.length * 25000);
   } catch (error) {
     console.log(error);
     res.status(404).json(error);
