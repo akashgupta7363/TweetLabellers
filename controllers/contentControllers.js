@@ -31,14 +31,14 @@ const labellingTweet = async (req, res) => {
         messages: [
           {
             role: 'user',
-            content: getPrompt(tweets, labels),
+            content: getPrompt(tweet.body, labels),
           },
         ],
         temperature: 0.7,
         max_tokens: 5,
       });
       const tag = response.data.choices[0].message.content;
-      tweets.label = tag;
+      tweet.label = tag;
     });
     assigningLabel(tweets, labels);
     res.status(200).json({
@@ -56,12 +56,13 @@ function assigningLabel(tweets, labels) {
     const impLabels = labels.filter((la) => la.importance);
     const nonImpLabels = labels.filter((la) => !la.importance);
     tweets.map(async (tweet) => {
-      if (nonImpLabels.includes(tag)) {
+      if (nonImpLabels.includes(tweet.label)) {
         await Content.findByIdAndDelete(tweet._id);
-      } else if (impLabels.includes(tag)) {
-        await Content.findByIdAndUpdate(tweet._id, { label: tag });
+        return;
+      } else if (impLabels.includes(tweet.label)) {
+        await Content.findByIdAndUpdate(tweet._id, { label: tweet.label });
         await Label.updateOne(
-          { label: tag },
+          { label: tweet.label },
           {
             $push: {
               tweetsId: tweet._id,
