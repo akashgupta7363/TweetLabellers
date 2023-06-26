@@ -24,13 +24,14 @@ const storeTweets = async (req, res) => {
 const labellingTweet = async (req, res) => {
   try {
     const tweets = await Content.find({ label: 'new' });
+    const labels = await Label.find();
     tweets.map(async (tweet) => {
       const response = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'user',
-            content: getPrompt(tweets),
+            content: getPrompt(tweets, labels),
           },
         ],
         temperature: 0.7,
@@ -39,7 +40,7 @@ const labellingTweet = async (req, res) => {
       const tag = response.data.choices[0].message.content;
       tweets.label = tag;
     });
-    assigningLabel(tweets, tag);
+    assigningLabel(tweets, labels);
     res.status(200).json({
       status: 'Tweets categorized successfully',
       message: 'Some tweets labelling waiting for admin approval.',
@@ -50,9 +51,8 @@ const labellingTweet = async (req, res) => {
   }
 };
 
-async function assigningLabel(tweets) {
+function assigningLabel(tweets, labels) {
   try {
-    const labels = await Label.find();
     const impLabels = labels.filter((la) => la.importance);
     const nonImpLabels = labels.filter((la) => !la.importance);
     tweets.map(async (tweet) => {
@@ -81,11 +81,14 @@ async function assigningLabel(tweets) {
   }
 }
 
-function getPrompt(body) {
+function getPrompt(body, labels) {
+  const labelsPrompt = labels
+    .filter((label) => label.importance)
+    .map((lab) => lab.label);
   const prompt = `Here is a tweet: 
   "${body}"
   these are labels:
-  ${labels}.
+  ${labelsPrompt}.
 Analyze the tweet on the context of AI.
 Can this tweet can be categorizes with the given label, if not then suggest an new label for the tweet.
 Give a reply only with the label`;
